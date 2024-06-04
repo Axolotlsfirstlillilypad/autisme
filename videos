@@ -1,0 +1,40 @@
+import cv2
+from deepface import DeepFace
+
+# Load pre-trained models for face detection and facial expression recognition
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+def detect_faces(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+    return faces
+
+def extract_facial_expressions(video_path):
+    cap = cv2.VideoCapture(video_path)
+    results = []
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        faces = detect_faces(frame)
+        for (x, y, w, h) in faces:
+            face = frame[y:y+h, x:x+w]
+            try:
+                # Use DeepFace for facial expression recognition
+                expression = DeepFace.analyze(face, actions=['emotion'])['dominant_emotion']
+                results.append(expression)
+            except:
+                pass
+
+    cap.release()
+    return results
+
+def main():
+    video_path = 'your_video.mp4'
+    expressions = extract_facial_expressions(video_path)
+    print(expressions)
+
+if __name__ == "__main__":
+    main()
